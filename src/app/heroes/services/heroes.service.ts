@@ -24,8 +24,17 @@ export class HeroesService {
       return this.http.get<Hero>(`${ this.baseUrl }/heroes/${ id }`)
       .pipe( //.pipe(...) se utiliza para encadenar operadores que pueden transformar, filtrar o manejar errores en el flujo de datos del observable.
         catchError(error => of(undefined) ) // si viene otro endpoint equivocado retorna undefined o of(undefined) crea un observable que emite el valor undefined.
-      )
-
+      );
   }
 
+//Este método realiza una solicitud GET al servidor para buscar héroes basados en un término de búsqueda (query).
+//Devuelve un observable que emite un arreglo con hasta 6 héroes que coincidan con el término de búsqueda.
+  getSuggestions(query: string): Observable<Hero[]> {
+    return this.http.get<Hero[]>(`${ this.baseUrl }/heroes?q=${ query }&_limit=6`);
+  }
+
+
 }
+
+
+
