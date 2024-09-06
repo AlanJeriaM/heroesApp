@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable, catchError, of, map } from 'rxjs';
 import { Hero } from '../interfaces/hero.interface';
 import { environments } from '../../../environments/environments';
 
@@ -31,6 +31,26 @@ export class HeroesService {
 //Devuelve un observable que emite un arreglo con hasta 6 héroes que coincidan con el término de búsqueda.
   getSuggestions(query: string): Observable<Hero[]> {
     return this.http.get<Hero[]>(`${ this.baseUrl }/heroes?q=${ query }&_limit=6`);
+  }
+
+  //Envía una petición POST para crear un nuevo héroe. Devuelve un Observable<Hero> con el héroe creado.
+  addHero(hero : Hero): Observable<Hero>{
+    return this.http.post<Hero>(`${ this.baseUrl }/heroes` , hero);
+  }
+
+  //Actualiza la información de un héroe existente utilizando su id. Si no hay id, lanza un error. Devuelve un Observable<Hero> con el héroe actualizado.
+  updateHero(hero : Hero): Observable<Hero>{
+    if(!hero.id) throw Error('Hero id is requerido');
+    return this.http.patch<Hero>(`${ this.baseUrl }/heroes/${hero.id}` , hero);
+  }
+
+  //Elimina un héroe por su id. Si ocurre un error, devuelve false, y si la eliminación es exitosa, devuelve true. Devuelve un Observable<boolean> que indicará si la eliminación fue exitosa (true) o fallida (false).
+  deleteHeroById( id: string): Observable<boolean>{
+    return this.http.delete(`${ this.baseUrl }/heroes/${ id }`)
+    .pipe(
+      catchError (err => of(false) ),
+      map(resp => true)
+    );
   }
 
 
