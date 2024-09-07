@@ -29,5 +29,13 @@ export class NewPageComponent {
   },
 ]
 
+onSubmit(){
+  console.log({
+    formIsValid: this.heroForm.valid,
+    value: this.heroForm.value,
+  });
+
+}
+
 
 }
