@@ -4,6 +4,7 @@ import { Hero, Publisher } from '../../interfaces/hero.interface';
 import { HeroesService } from '../../services/heroes.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { switchMap } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-new-page',
@@ -24,6 +25,7 @@ export class NewPageComponent implements OnInit{
     alt_img:           new FormControl(''),
   });
 
+  //Se define una lista de opciones de editoriales (DC Comics y Marvel Comics), que se usará en el formulario para seleccionar la editorial del héroe.
   public publishers = [{
     id: 'DC Comics',
     desc: 'DC - Comics'
@@ -34,17 +36,22 @@ export class NewPageComponent implements OnInit{
   },
 ]
 
+
 constructor(private heroesService: HeroesService,
-            private activatedRoute:ActivatedRoute, //
-            private router: Router,
+            private activatedRoute:ActivatedRoute, // se usa para acceder a los parámetros de la ruta (como el ID del héroe cuando se edita).
+            private router: Router, //permite redirigir al usuario después de crear o actualizar un héroe.
+            private snackbar: MatSnackBar,
 
 ){}
 
 
   ngOnInit(): void {
 
-    if ( !this.router.url.includes('edit') ) return; //si en la routa y en el url no existe la palabra "edit" no hacer nada, ya que creara el heroe de forma normal.
+    if ( !this.router.url.includes('edit') ) return; //Se verifica si la URL contiene la palabra "edit". Si no la contiene, el componente asume que se está creando un nuevo héroe, por lo que no hace nada.
 
+
+    //Si la URL contiene "edit", significa que se está editando un héroe, por lo que se obtiene el parámetro id de la ruta. Luego, con switchMap,
+    // llama al servicio para obtener los detalles del héroe mediante getHeroById. Si el héroe existe, resetea el formulario con los datos del héroe encontrado; si no, redirige a la página principal.
     this.activatedRoute.params
       .pipe(
         switchMap( ({ id } ) => this.heroesService.getHeroById( id ) ),
@@ -56,12 +63,15 @@ constructor(private heroesService: HeroesService,
         return;
       })
   }
+  //Este getter devuelve los valores actuales del formulario, convertidos en un objeto de tipo Hero. Esto se utiliza para pasar los datos del héroe al servicio cuando se crea o actualiza.
+  get currentHero(): Hero {
+    const hero = this.heroForm.value as Hero;
+    return hero;
+  }
 
-get currentHero(): Hero {
-  const hero = this.heroForm.value as Hero;
-  return hero;
-}
-
+  //Este método se llama cuando el formulario se envía
+  //Primero, verifica si el formulario es válido.
+  //Si el héroe tiene un id (es decir, está en modo de edición), llama al servicio para actualizar el héroe. De lo contrario, llama al servicio para agregar un nuevo héroe.
 onSubmit(){
 
   if ( this.heroForm.invalid ) return;
@@ -70,6 +80,7 @@ onSubmit(){
     this.heroesService.updateHero( this.currentHero )
     .subscribe(hero => {
       // TODO: Mostrar snackbar
+      this.showSnackbar(`${ hero.superhero } Actualizado!`)
     });
 
     return;
@@ -78,8 +89,14 @@ onSubmit(){
   this.heroesService.addHero( this.currentHero )
   .subscribe( hero => {
     // TODO: Mostrar snackbar, y navegar a /heroes/edit/hero.id
+    this.router.navigate(['/heroes/edit', hero.id])
+    this.showSnackbar(`${ hero.superhero } Creado!`)
   })
 
+}
+
+showSnackbar(message:string){
+  this.snackbar.open(message, 'done',{duration: 2500});
 }
 
 
