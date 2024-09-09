@@ -1,14 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Hero, Publisher } from '../../interfaces/hero.interface';
 import { HeroesService } from '../../services/heroes.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-new-page',
   templateUrl: './new-page.component.html',
   styles: ``
 })
-export class NewPageComponent {
+export class NewPageComponent implements OnInit{
+
+
 
   public heroForm = new FormGroup({
     id:                new FormControl<string>('', {nonNullable: true }), //siempre sera un string
@@ -30,9 +34,28 @@ export class NewPageComponent {
   },
 ]
 
-constructor(private heroesService: HeroesService
+constructor(private heroesService: HeroesService,
+            private activatedRoute:ActivatedRoute, //
+            private router: Router,
 
 ){}
+
+
+  ngOnInit(): void {
+
+    if ( !this.router.url.includes('edit') ) return; //si en la routa y en el url no existe la palabra "edit" no hacer nada, ya que creara el heroe de forma normal.
+
+    this.activatedRoute.params
+      .pipe(
+        switchMap( ({ id } ) => this.heroesService.getHeroById( id ) ),
+      ).subscribe( hero => {
+
+        if(!hero) return this.router.navigateByUrl('/');
+
+        this.heroForm.reset(hero);
+        return;
+      })
+  }
 
 get currentHero(): Hero {
   const hero = this.heroForm.value as Hero;
@@ -43,7 +66,19 @@ onSubmit(){
 
   if ( this.heroForm.invalid ) return;
 
-//  this.heroesService.updateHero()
+  if ( this.currentHero.id  ){
+    this.heroesService.updateHero( this.currentHero )
+    .subscribe(hero => {
+      // TODO: Mostrar snackbar
+    });
+
+    return;
+  }
+
+  this.heroesService.addHero( this.currentHero )
+  .subscribe( hero => {
+    // TODO: Mostrar snackbar, y navegar a /heroes/edit/hero.id
+  })
 
 }
 
