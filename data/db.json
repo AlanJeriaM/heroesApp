@@ -4,6 +4,14 @@
       "id": 1,
       "user": "John Doe",
       "email": "john.due@gmail.com"
+    },
+    {
+      "first_appearance": "mi primer comic #2",
+      "id": 2
+    },
+    {
+      "first_appearance": "mi primer comic #2",
+      "id": 3
     }
   ],
   "heroes": [
